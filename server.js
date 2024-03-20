@@ -1,55 +1,52 @@
 var http = require('http');
+var fs = require('fs');
+var port = 1337;
+function serveStaticFile(res, path, contentType, responseCode) {
+   if (!responseCode) {
+       responseCode = 200;
+   }
+fs.readFile(__dirname + path, function (err, data) {
+       if (err) {
+           res.writeHead(500, {'Content-Type': 'text/plain'});
+           res.end('500 - Internal Error');
+       } else {
+           res.writeHead(responseCode, {'Content-Type': contentType});
+           res.end(data);
+       }
 
-var fs = require('fs')
 
-var path = require('path')
 
-var port = 1337
 
-function serveStaticFile( res, path,contentType,ResponseCode)
-{ let statusCode = 200 ;
-let contentType = 'text/html';
-
-var extname = path.extname(filePath);
-switch (extname) {
-case '.css':
-	contentType = 'text/css';
-	break;
-case '.png':
-	contentType = 'image/png';
-	break;
+   });
 }
+http.createServer(function (req, res) {
+   var path = req.url.replace(/\/?(?:\?.*)?$/, '').toLowerCase();
+   switch (path) {
+       case '':
+           serveStaticFile(res, '/public/index.html', 'text/html');
+           break;
+       case '/css/style.css':
+           serveStaticFile(res, '/public/css/style.css', 'text/css');
+           break;
+       case '/images/computer-typing.jpeg':
+           serveStaticFile(res, '/public/images/computer-typing.jpeg', 'imag/jpeg');
+           break;
+           //Serve each image inside the images folder to show appropriate images on the page.
+       case '/images/blogging.png':
+           serveStaticFile(res, '/public/images/blogging.png', 'imag/png');
+           break;
+       case '/images/logo.png':
+           serveStaticFile(res, '/public/images/logo.png', 'imag/png');
+           break;
+default:
+           serveStaticFile(res, '/public/404.html', 'text/html', 404);
+           break;
+   }
 
-fs.readFile(filePath, (err, data ) =>  {
-	if (err){ 
-		statusCode = 500;
-		data = 'Internal Server Error'}
-		response.writeHead(statusCode,{'Content-Type': contentType});
-		response.end(data);
-});
 
-var server= http.createServer ((request, response) => {
-	let url = request.url.toLowerCase();
-	url = url.split('?')[0];
-	if(url.endsWith('/')) { url= url.slice(0,-1);
-}
+}).listen(port);
 
-let filePath = '/public' + url;
 
-if (url === '/' || url === '/index' || url === '/index.html') {
-        filePath = './public/index.html';
-    } else if (url === '/about' || url === '/about.html') {
-        filePath = './public/about.html';
-    } else if (url.startsWith('/css/')) {
-        filePath = './public' + url;
-    } else if (url.startsWith('/images/')) {
-        filePath = './public' + url;
-    } else {
-    	filePath = './public/404.html';
-        response.statusCode = 404;
-    }
-    serveStaticFile(filePath, response);
-});
-server.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}/`);
-});
+console.log("Server started on http://localhost:" + port);
+
+
